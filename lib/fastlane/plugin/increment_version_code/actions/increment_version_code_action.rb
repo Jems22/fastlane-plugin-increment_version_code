@@ -39,9 +39,11 @@ module Fastlane
             UI.user_error!("Impossible to find the version code in the current project folder #{app_folder_name} 😭")
         else
             # Store the version name in the shared hash
-            Actions.lane_context["VERSION_CODE"]=version_code
+            Actions.lane_context["VERSION_CODE"]=new_version_code
             UI.success("☝️ Version code has been changed from #{version_code} to #{new_version_code}")
         end
+
+        return new_version_code
       end
 
       def self.description
@@ -61,6 +63,12 @@ module Fastlane
                                         type: String,
                                default_value:"app")
           ]
+      end
+
+      def self.output
+        [
+          ['VERSION_CODE', 'The new version code of the project']
+        ]
       end
 
       def self.is_supported?(platform)

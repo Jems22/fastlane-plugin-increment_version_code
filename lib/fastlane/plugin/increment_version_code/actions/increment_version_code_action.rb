@@ -12,22 +12,29 @@ module Fastlane
         new_version_code = "0"
 
         temp_file = Tempfile.new('fastlaneIncrementVersionCode')
+        foundVersionCode = "false"
         Dir.glob("../**/#{app_folder_name}/build.gradle") do |path|
             begin
                   File.open(path, 'r') do |file|
                     file.each_line do |line|
-                        if line.include? "versionCode"
+                        if line.include? "versionCode " and foundVersionCode=="false"
                            versionComponents = line.strip.split(' ')
                            version_code = versionComponents[1].tr("\"","")
                            new_version_code = version_code.to_i + 1
-                           line.replace line.sub(version_code, new_version_code.to_s)
+                           if version_code.is_a? Integer
+                               line.replace line.sub(version_code, new_version_code.to_s)
+                               foundVersionCode = "true"
+                           end
                            temp_file.puts line
                        else
                            temp_file.puts line
                        end
                     end
+                    file.close
+                    if foundVersionCode=="true"
+                        break
+                    end
                   end
-                  temp_file.close
                   FileUtils.mv(temp_file.path, path)
                 ensure
                   temp_file.close

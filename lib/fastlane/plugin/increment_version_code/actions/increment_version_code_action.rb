@@ -13,7 +13,8 @@ module Fastlane
 
         temp_file = Tempfile.new('fastlaneIncrementVersionCode')
         foundVersionCode = "false"
-        Dir.glob("../**/#{app_folder_name}/build.gradle") do |path|
+        Dir.glob("**/#{app_folder_name}/build.gradle") do |path|
+            UI.message(" -> Found a build.gradle file at path: (#{path})!")
             begin
                   File.open(path, 'r') do |file|
                     file.each_line do |line|

@@ -15,14 +15,16 @@ module Fastlane
         foundVersionCode = "false"
         Dir.glob("**/#{app_folder_name}/build.gradle") do |path|
             UI.message(" -> Found a build.gradle file at path: (#{path})!")
-            begin
+                begin
+                    temp_file = Tempfile.new('fastlaneIncrementVersionCode')
                   File.open(path, 'r') do |file|
                     file.each_line do |line|
                         if line.include? "versionCode " and foundVersionCode=="false"
+
                            versionComponents = line.strip.split(' ')
                            version_code = versionComponents[1].tr("\"","")
                            new_version_code = version_code.to_i + 1
-                           if version_code.is_a? Integer
+                           if !!(version_code =~ /\A[-+]?[0-9]+\z/)
                                line.replace line.sub(version_code, new_version_code.to_s)
                                foundVersionCode = "true"
                            end
@@ -31,17 +33,24 @@ module Fastlane
                            temp_file.puts line
                        end
                     end
-                    file.close
+
                     if foundVersionCode=="true"
                         break
                     end
+                    file.close
                   end
                   FileUtils.mv(temp_file.path, path)
-                ensure
                   temp_file.close
                   temp_file.unlink
+                ensure
+                    if foundVersionCode=="true"
+
+                        break
+                    end
+
             end
         end
+
 
         if version_code == "0" || new_version_code == "1"
             UI.user_error!("Impossible to find the version code in the current project folder #{app_folder_name} 😭")

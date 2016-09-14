@@ -9,7 +9,8 @@ module Fastlane
         UI.message("The get_version_code plugin is looking inside your project folder (#{app_folder_name})!")
 
         version_code = "0"
-        new_version_code = "0"
+        new_version_code ||= params[:version_code]
+        UI.message("new version code = #{new_version_code}")
 
         temp_file = Tempfile.new('fastlaneIncrementVersionCode')
         foundVersionCode = "false"
@@ -23,7 +24,9 @@ module Fastlane
 
                            versionComponents = line.strip.split(' ')
                            version_code = versionComponents[1].tr("\"","")
-                           new_version_code = version_code.to_i + 1
+                           if new_version_code <= 0
+                               new_version_code = version_code.to_i + 1
+                           end
                            if !!(version_code =~ /\A[-+]?[0-9]+\z/)
                                line.replace line.sub(version_code, new_version_code.to_s)
                                foundVersionCode = "true"
@@ -73,12 +76,18 @@ module Fastlane
 
       def self.available_options
           [
-            FastlaneCore::ConfigItem.new(key: :app_folder_name,
-                                    env_name: "INCREMENTVERSIONCODE_APP_FOLDER_NAME",
-                                 description: "The name of the application source folder in the Android project (default: app)",
-                                    optional: true,
-                                        type: String,
-                               default_value:"app")
+              FastlaneCore::ConfigItem.new(key: :app_folder_name,
+                                      env_name: "INCREMENTVERSIONCODE_APP_FOLDER_NAME",
+                                   description: "The name of the application source folder in the Android project (default: app)",
+                                      optional: true,
+                                          type: String,
+                                 default_value:"app"),
+              FastlaneCore::ConfigItem.new(key: :version_code,
+                                      env_name: "INCREMENTVERSIONCODE_VERSION_CODE",
+                                   description: "Change to a specific version (optional)",
+                                      optional: true,
+                                          type: Integer,
+                                 default_value: 0)
           ]
       end
 

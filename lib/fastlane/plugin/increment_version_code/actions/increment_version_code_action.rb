@@ -42,8 +42,9 @@ module Fastlane
                     end
                     file.close
                   end
-                  FileUtils.mv(temp_file.path, path)
+                  temp_file.rewind
                   temp_file.close
+                  FileUtils.mv(temp_file.path, path)
                   temp_file.unlink
                 ensure
                     if foundVersionCode=="true"

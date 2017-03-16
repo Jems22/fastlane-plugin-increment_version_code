@@ -8,19 +8,27 @@ module Fastlane
         app_folder_name ||= params[:app_folder_name]
         UI.message("The get_version_code plugin is looking inside your project folder (#{app_folder_name})!")
 
+        product_flavor ||= params[:product_flavor]
+
         version_code = "0"
         new_version_code ||= params[:version_code]
         UI.message("new version code = #{new_version_code}")
 
         temp_file = Tempfile.new('fastlaneIncrementVersionCode')
         foundVersionCode = "false"
+        foundProductFlavor = product_flavor == nil
+        
         Dir.glob("**/#{app_folder_name}/build.gradle") do |path|
             UI.message(" -> Found a build.gradle file at path: (#{path})!")
                 begin
                     temp_file = Tempfile.new('fastlaneIncrementVersionCode')
                   File.open(path, 'r') do |file|
                     file.each_line do |line|
-                        if line.include? "versionCode " and foundVersionCode=="false"
+                      if line.include? product_flavor and not foundProductFlavor
+                        foundProductFlavor = true
+                      end
+                        
+                        if foundProductFlavor and line.include? "versionCode " and foundVersionCode=="false"
 
                            versionComponents = line.strip.split(' ')
                            version_code = versionComponents[1].tr("\"","")
@@ -88,7 +96,13 @@ module Fastlane
                                    description: "Change to a specific version (optional)",
                                       optional: true,
                                           type: Integer,
-                                 default_value: 0)
+                                 default_value: 0),
+             FastlaneCore::ConfigItem.new(key: :product_flavor,
+                                     env_name: "PRODUCT_FLAVOR",
+                                  description: "The name of the product flavor (optional)",
+                                     optional: true,
+                                         type: String,
+                                default_value: nil)            
           ]
       end
 

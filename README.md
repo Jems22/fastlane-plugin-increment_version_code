@@ -2,6 +2,10 @@
 
 [![fastlane Plugin Badge](https://rawcdn.githack.com/fastlane/fastlane/master/fastlane/assets/plugin-badge.svg)](https://rubygems.org/gems/fastlane-plugin-increment_version_code)
 
+# !!!! DEPRECATED WARNING !!!!
+
+This package is no longer being maintained. Thank you for your interest!
+
 ## Getting Started
 
 This project is a [fastlane](https://github.com/fastlane/fastlane) plugin. To get started with `fastlane-plugin-increment_version_code`, add it to your project by running:

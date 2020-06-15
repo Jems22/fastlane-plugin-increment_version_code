@@ -3,6 +3,9 @@ require 'fileutils'
 
 module Fastlane
   module Actions
+	module SharedValues
+		VERSION_CODE = :VERSION_CODE
+	end
     class IncrementVersionCodeAction < Action
       def self.run(params)
 
@@ -11,10 +14,12 @@ module Fastlane
 
         constant_name ||= params[:ext_constant_name]
 
+        dry_run ||= params[:dry_run]
+
         gradle_file_path ||= params[:gradle_file_path]
         if gradle_file_path != nil
             UI.message("The increment_version_code plugin will use gradle file at (#{gradle_file_path})!")
-            new_version_code = incrementVersion(gradle_file_path, new_version_code, constant_name)
+            new_version_code = incrementVersion(gradle_file_path, new_version_code, constant_name, dry_run)
         else
             app_folder_name ||= params[:app_folder_name]
             UI.message("The get_version_code plugin is looking inside your project folder (#{app_folder_name})!")
@@ -23,7 +28,7 @@ module Fastlane
             #foundVersionCode = "false"
             Dir.glob("**/#{app_folder_name}/build.gradle") do |path|
                 UI.message(" -> Found a build.gradle file at path: (#{path})!")
-                new_version_code = incrementVersion(path, new_version_code, constant_name)
+                new_version_code = incrementVersion(path, new_version_code, constant_name, dry_run)
             end
 
         end
@@ -32,14 +37,14 @@ module Fastlane
             UI.user_error!("Impossible to find the version code with the specified properties 😭")
         else
             # Store the version name in the shared hash
-            Actions.lane_context["VERSION_CODE"]=new_version_code
+            Actions.lane_context[SharedValues::VERSION_CODE]=new_version_code
             UI.success("☝️ Version code has been changed to #{new_version_code}")
         end
 
         return new_version_code
       end
 
-      def self.incrementVersion(path, new_version_code, constant_name)
+      def self.incrementVersion(path, new_version_code, constant_name, dry_run)
           if !File.file?(path)
               UI.message(" -> No file exist at path: (#{path})!")
               return -1
@@ -69,7 +74,9 @@ module Fastlane
             end
             temp_file.rewind
             temp_file.close
-            FileUtils.mv(temp_file.path, path)
+            if dry_run == false
+              FileUtils.mv(temp_file.path, path)
+            end
             temp_file.unlink
           end
           if foundVersionCode == "true"
@@ -94,7 +101,7 @@ module Fastlane
                                       optional: true,
                                           type: String,
                                  default_value:"app"),
-             FastlaneCore::ConfigItem.new(key: :gradle_file_path,
+              FastlaneCore::ConfigItem.new(key: :gradle_file_path,
                                      env_name: "INCREMENTVERSIONCODE_GRADLE_FILE_PATH",
                                   description: "The relative path to the gradle file containing the version code parameter (default:app/build.gradle)",
                                      optional: true,
@@ -111,7 +118,13 @@ module Fastlane
                                    description: "If the version code is set in an ext constant, specify the constant name (optional)",
                                       optional: true,
                                           type: String,
-                                 default_value: "versionCode")
+                                 default_value: "versionCode"),
+              FastlaneCore::ConfigItem.new(key: :dry_run,
+                                      env_name: "INCREMENTVERSIONCODE_DRY_RUN",
+                                   description: "If set to true, the gradle file will not be changed (optional)",
+                                      optional: true,
+                                          type: Boolean,
+                                 default_value: false)
           ]
       end
 

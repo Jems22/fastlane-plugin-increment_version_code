@@ -9,6 +9,13 @@ module Fastlane
         version_code = "0"
         new_version_code ||= params[:version_code]
 
+        # If version_code is set, ignore the process
+        if new_version_code != nil
+          # Store the version name in the shared hash
+          Actions.lane_context["VERSION_CODE"]=new_version_code.to_i
+          UI.success("VERSION_CODE will be forced set to #{new_version_code}")
+          UI.success("☝️ Version code has been changed to #{new_version_code}")
+
         constant_name ||= params[:ext_constant_name]
 
         gradle_file_path ||= params[:gradle_file_path]
@@ -102,7 +109,7 @@ module Fastlane
                                 default_value: nil),
               FastlaneCore::ConfigItem.new(key: :version_code,
                                       env_name: "INCREMENTVERSIONCODE_VERSION_CODE",
-                                   description: "Change to a specific version (optional)",
+                                   description: "Force change to a specific version (optional)",
                                       optional: true,
                                           type: Integer,
                                  default_value: 0),
